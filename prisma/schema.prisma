@@ -1,0 +1,151 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DB_URL")
+}
+
+model Package {
+  id         Int      @id @default(autoincrement())
+  name       String   @db.VarChar(255)
+  created_at DateTime @default(now())
+  updated_at DateTime @default(now()) @updatedAt
+
+  users User[]
+}
+
+model Language {
+  id         Int      @id @default(autoincrement())
+  name       String   @db.VarChar(255)
+  created_at DateTime @default(now())
+  updated_at DateTime @default(now()) @updatedAt
+
+  users User[]
+}
+
+model Tmi {
+  id         Int      @id @default(autoincrement())
+  name       String   @db.VarChar(255)
+  created_at DateTime @default(now())
+  updated_at DateTime @default(now()) @updatedAt
+
+  user_tmis UserTmi[]
+}
+
+enum GenderType {
+  MALE
+  FEMALE
+  OTHER
+}
+
+model User {
+  id                   Int        @id @default(autoincrement())
+  gender               GenderType
+  name                 String     @db.VarChar(255)
+  birth_date           DateTime   @db.Date
+  avatar_id            Int?
+  looking_for_love     Boolean    @default(false)
+  looking_for_friend   Boolean    @default(false)
+  looking_for_coworker Boolean    @default(false)
+  github_oauth_id      String     @unique @db.VarChar(255)
+  created_at           DateTime   @default(now())
+  updated_at           DateTime   @default(now()) @updatedAt
+
+  most_preferred_language_id Int?
+  most_preferred_language    Language? @relation(fields: [most_preferred_language_id], references: [id])
+
+  most_preferred_package_id Int?
+  most_preferred_package    Package? @relation(fields: [most_preferred_package_id], references: [id])
+
+  user_tmis           UserTmi[]
+  user_codes          UserCode[]
+  user_reaction_froms UserReaction[]    @relation("from_user")
+  user_reaction_tos   UserReaction[]    @relation("to_user")
+  chatroom_messages   ChatroomMessage[]
+  chatroom_users      ChatroomUser[]
+}
+
+model UserTmi {
+  id         Int      @id @default(autoincrement())
+  user_id    Int
+  tmi_id     Int
+  created_at DateTime @default(now())
+  updated_at DateTime @default(now()) @updatedAt
+
+  user User @relation(fields: [user_id], references: [id])
+  tmi  Tmi  @relation(fields: [tmi_id], references: [id])
+
+  @@unique([user_id, tmi_id])
+}
+
+model UserCode {
+  id         Int      @id @default(autoincrement())
+  index      Int?
+  content    String   @db.Text
+  created_at DateTime @default(now())
+  updated_at DateTime @default(now()) @updatedAt
+
+  user_id Int
+  user    User @relation(fields: [user_id], references: [id])
+}
+
+enum ReactionType {
+  SUPER_LIKE
+  LIKE
+  DISLIKE
+}
+
+model UserReaction {
+  id         Int          @id @default(autoincrement())
+  type       ReactionType
+  created_at DateTime     @default(now())
+  updated_at DateTime     @default(now()) @updatedAt
+
+  from_user_id Int
+  from_user    User @relation("from_user", fields: [from_user_id], references: [id])
+  to_user_id   Int
+  to_user      User @relation("to_user", fields: [to_user_id], references: [id])
+
+  @@unique([from_user_id, to_user_id])
+}
+
+model Chatroom {
+  id         Int      @id @default(autoincrement())
+  created_at DateTime @default(now())
+  updated_at DateTime @default(now()) @updatedAt
+
+  chatroom_messages ChatroomMessage[]
+  chatroom_users    ChatroomUser[]
+}
+
+model ChatroomMessage {
+  id         Int      @id @default(autoincrement())
+  content    String   @db.Text
+  created_at DateTime @default(now())
+  updated_at DateTime @default(now()) @updatedAt
+
+  chatroom_id Int
+  chatroom    Chatroom @relation(fields: [chatroom_id], references: [id])
+
+  user_id Int
+  user    User @relation(fields: [user_id], references: [id])
+}
+
+model ChatroomUser {
+  id         Int      @id @default(autoincrement())
+  created_at DateTime @default(now())
+  updated_at DateTime @default(now()) @updatedAt
+
+  chatroom_id Int
+  chatroom    Chatroom @relation(fields: [chatroom_id], references: [id])
+
+  user_id Int
+  user    User @relation(fields: [user_id], references: [id])
+
+  @@unique([chatroom_id, user_id])
+}
