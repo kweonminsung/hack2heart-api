@@ -3,6 +3,7 @@ import { ConfigModule } from '@nestjs/config';
 import { PrismaModule } from '../prisma/prisma.module';
 import configuration from './configuration';
 import { AuthModule } from '../auth/auth.module';
+import { KafkaProducerModule } from '../kafka-producer/kafka-producer.module';
 
 @Module({
   imports: [
@@ -14,6 +15,7 @@ import { AuthModule } from '../auth/auth.module';
       envFilePath: `.env.${process.env.APP_ENV}`,
     }),
     PrismaModule,
+    KafkaProducerModule,
     AuthModule,
   ],
 })

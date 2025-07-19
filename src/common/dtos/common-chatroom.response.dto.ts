@@ -1,7 +1,7 @@
 import { Chatroom } from '@prisma/client';
 
 export class CommonChatroomResponseDto {
-  id: number;
+  id: string;
   creatcd_at: Date;
 
   constructor(chatroom: Chatroom) {

@@ -3,10 +3,14 @@ import { PrismaService } from 'src/config/prisma/prisma.service';
 import { CreateLanguageRequestDto } from './dtos/create-language-request.dto';
 import { CreatePackageRequestDto } from './dtos/create-package-request.dto';
 import { CreateTmiRequestDto } from './dtos/create-tmi-request.dto';
+import { KafkaProducerService } from 'src/config/kafka-producer/kafka-producer.service';
 
 @Injectable()
 export class CommonService {
-  constructor(private readonly prismaService: PrismaService) {}
+  constructor(
+    private readonly prismaService: PrismaService,
+    private readonly kafkaProducerService: KafkaProducerService,
+  ) {}
 
   async getUserById(userId: number) {
     return this.prismaService.user.findUnique({
@@ -131,6 +135,12 @@ export class CommonService {
       data: {
         name,
       },
+    });
+  }
+
+  async emitKafkaMessage() {
+    this.kafkaProducerService.sendMessage({
+      message: 'Hello from NestJS Kafka Producer',
     });
   }
 }

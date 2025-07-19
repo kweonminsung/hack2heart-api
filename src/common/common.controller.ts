@@ -95,4 +95,13 @@ export class CommonController {
 
     return new CommonResponseDto(new CommonTmiResponseDto(tmi));
   }
+
+  @Post('kafka/emit')
+  @HttpCode(200)
+  @ApiOperation({ summary: 'Kafka 메시지 전송' })
+  async emitKafkaMessage(@Body() body: { message: any }) {
+    const kafkaProducerService = this.commonService.emitKafkaMessage();
+
+    return new CommonResponseDto();
+  }
 }
