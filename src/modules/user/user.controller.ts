@@ -12,7 +12,7 @@ import {
   Query,
   UseGuards,
 } from '@nestjs/common';
-import { ApiOperation, ApiTags } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { UserService } from './user.service';
 import { JwtAuthGuard } from 'src/config/auth/jwt/jwt.guard';
 import { CurrentUser } from 'src/common/decorators/current-user.decorator';
@@ -26,6 +26,7 @@ import { GetUserCodeResponseDto } from './dtos/get-user-code-response.dto';
 import { CreateUserCodeRequestDto } from './dtos/create-user-code-request.dto';
 import { UpdateUserCodeRequestDto } from './dtos/update-user-code-request.dto';
 import { CommonService } from 'src/common/common.service';
+import { CommonChatroomResponseDto } from 'src/common/dtos/common-chatroom.response.dto';
 
 @ApiTags('users')
 @Controller('users')
@@ -38,6 +39,7 @@ export class UserController {
   @Get('me')
   @UseGuards(JwtAuthGuard)
   @ApiOperation({ summary: '내 정보 조회' })
+  @ApiBearerAuth('access-token')
   async getUserMe(@CurrentUser() currentUser: User) {
     const user = await this.userService.getUserById(currentUser.id);
     if (!user) {
@@ -94,6 +96,7 @@ export class UserController {
   @Put('me')
   @UseGuards(JwtAuthGuard)
   @ApiOperation({ summary: '내 정보 수정' })
+  @ApiBearerAuth('access-token')
   async updateMe(
     @CurrentUser() currentUser: User,
     @Body() updateUserRequestDto: UpdateUserRequestDto,
@@ -127,6 +130,7 @@ export class UserController {
   @Get('me/codes')
   @UseGuards(JwtAuthGuard)
   @ApiOperation({ summary: '내 코드 리스트 조회' })
+  @ApiBearerAuth('access-token')
   async getUserMeCodes(
     @CurrentUser() currentUser: User,
     @Query() getUserCodeQueryDto: GetUserCodeQueryDto,
@@ -170,6 +174,7 @@ export class UserController {
   @Post('me/codes')
   @UseGuards(JwtAuthGuard)
   @ApiOperation({ summary: '내 코드 업로드' })
+  @ApiBearerAuth('access-token')
   async createUserCode(
     @CurrentUser() currentUser: User,
     @Body() createUserCodeRequestDto: CreateUserCodeRequestDto,
@@ -185,6 +190,7 @@ export class UserController {
   @Put('me/codes/:code_id')
   @UseGuards(JwtAuthGuard)
   @ApiOperation({ summary: '내 코드 수정' })
+  @ApiBearerAuth('access-token')
   async updateUserCode(
     @CurrentUser() currentUser: User,
     @Param('code_id', ParseIntPipe) codeId: number,
@@ -202,6 +208,7 @@ export class UserController {
   @Delete('me/codes/:code_id')
   @UseGuards(JwtAuthGuard)
   @ApiOperation({ summary: '내 코드 삭제' })
+  @ApiBearerAuth('access-token')
   async deleteUserCode(
     @CurrentUser() currentUser: User,
     @Param('code_id', ParseIntPipe) codeId: number,
@@ -217,5 +224,19 @@ export class UserController {
     await this.userService.deleteUserCode(currentUser.id, codeId);
 
     return new CommonResponseDto();
+  }
+
+  @Get('me/chatrooms')
+  @UseGuards(JwtAuthGuard)
+  @ApiOperation({ summary: '내 채팅방 리스트 조회' })
+  @ApiBearerAuth('access-token')
+  async getUserChatrooms(@CurrentUser() currentUser: User) {
+    const chatrooms = await this.userService.getUserChatrooms(currentUser.id);
+
+    return new CommonResponseDto({
+      chatrooms: chatrooms.map(
+        (chatroom) => new CommonChatroomResponseDto(chatroom),
+      ),
+    });
   }
 }

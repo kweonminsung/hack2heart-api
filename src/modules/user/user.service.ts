@@ -181,4 +181,18 @@ export class UserService {
       },
     });
   }
+
+  async getUserChatrooms(userId: number) {
+    const chatrooms = await this.prismaService.chatroom.findMany({
+      where: {
+        chatroom_users: {
+          some: {
+            user_id: userId,
+          },
+        },
+      },
+    });
+
+    return chatrooms;
+  }
 }

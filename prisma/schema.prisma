@@ -115,7 +115,7 @@ model UserReaction {
 }
 
 model Chatroom {
-  id         Int      @id @default(autoincrement())
+  id         String   @id
   created_at DateTime @default(now())
   updated_at DateTime @default(now()) @updatedAt
 
@@ -129,7 +129,7 @@ model ChatroomMessage {
   created_at DateTime @default(now())
   updated_at DateTime @default(now()) @updatedAt
 
-  chatroom_id Int
+  chatroom_id String
   chatroom    Chatroom @relation(fields: [chatroom_id], references: [id])
 
   user_id Int
@@ -141,7 +141,7 @@ model ChatroomUser {
   created_at DateTime @default(now())
   updated_at DateTime @default(now()) @updatedAt
 
-  chatroom_id Int
+  chatroom_id String
   chatroom    Chatroom @relation(fields: [chatroom_id], references: [id])
 
   user_id Int

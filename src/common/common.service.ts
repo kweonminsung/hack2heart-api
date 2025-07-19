@@ -32,6 +32,12 @@ export class CommonService {
     });
   }
 
+  async getChatroomById(chatroomId: string) {
+    return this.prismaService.chatroom.findUnique({
+      where: { id: chatroomId },
+    });
+  }
+
   async getLanguageById(languageId: number) {
     return this.prismaService.language.findUnique({
       where: { id: languageId },
