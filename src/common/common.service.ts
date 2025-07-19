@@ -23,6 +23,15 @@ export class CommonService {
     });
   }
 
+  async getUserCodeById(userId: number, codeId: number) {
+    return this.prismaService.userCode.findUnique({
+      where: {
+        id: codeId,
+        user_id: userId,
+      },
+    });
+  }
+
   async getLanguageById(languageId: number) {
     return this.prismaService.language.findUnique({
       where: { id: languageId },

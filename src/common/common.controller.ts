@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Post, Query } from '@nestjs/common';
+import { Body, Controller, Get, HttpCode, Post, Query } from '@nestjs/common';
 import { CommonService } from './common.service';
 import { ApiOperation, ApiTags } from '@nestjs/swagger';
 import { CommonResponseDto } from './dtos/common-response.dto';
@@ -36,6 +36,7 @@ export class CommonController {
   }
 
   @Post('languages')
+  @HttpCode(201)
   @ApiOperation({ summary: '언어 생성' })
   async createLanguage(
     @Body() createLanguageRequestDto: CreateLanguageRequestDto,
@@ -62,6 +63,7 @@ export class CommonController {
   }
 
   @Post('packages')
+  @HttpCode(201)
   @ApiOperation({ summary: '패키지 생성' })
   async createPackage(
     @Body() createPackageRequestDto: CreatePackageRequestDto,
@@ -86,6 +88,7 @@ export class CommonController {
   }
 
   @Post('tmis')
+  @HttpCode(201)
   @ApiOperation({ summary: 'TMI 생성' })
   async createTmi(@Body() createTmiRequestDto: CreateTmiRequestDto) {
     const tmi = await this.commonService.createTmi(createTmiRequestDto);

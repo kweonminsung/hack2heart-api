@@ -12,12 +12,7 @@ import {
   IsString,
 } from 'class-validator';
 
-export class CreateUserRequestDto {
-  @ApiProperty()
-  @IsNotEmpty()
-  @IsString()
-  github_oauth_id: string;
-
+export class UpdateUserRequestDto {
   @ApiProperty()
   @IsNotEmpty()
   @IsString()
