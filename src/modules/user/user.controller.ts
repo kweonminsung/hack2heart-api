@@ -21,7 +21,7 @@ import { CommonResponseDto } from 'src/common/dtos/common-response.dto';
 import { CommonUserResponseDto } from 'src/common/dtos/common-user-response.dto';
 import { CreateUserRequestDto } from './dtos/create-user-request.dto';
 import { UpdateUserRequestDto } from './dtos/update-user-request.dto copy';
-import { GetUserCodeQueryDto } from './dtos/get-user-code-query.dto';
+import { GetUserCodesQueryDto } from './dtos/get-user-codes-query.dto';
 import { GetUserCodeResponseDto } from './dtos/get-user-code-response.dto';
 import { CreateUserCodeRequestDto } from './dtos/create-user-code-request.dto';
 import { UpdateUserCodeRequestDto } from './dtos/update-user-code-request.dto';
@@ -133,9 +133,9 @@ export class UserController {
   @ApiBearerAuth('access-token')
   async getUserMeCodes(
     @CurrentUser() currentUser: User,
-    @Query() getUserCodeQueryDto: GetUserCodeQueryDto,
+    @Query() getUserCodesQueryDto: GetUserCodesQueryDto,
   ) {
-    const { pinned } = getUserCodeQueryDto;
+    const { pinned } = getUserCodesQueryDto;
 
     const userCodes = await this.userService.getUserCodes(
       currentUser.id,
@@ -153,9 +153,9 @@ export class UserController {
   @ApiOperation({ summary: '유저 코드 리스트 조회' })
   async getUserCodes(
     @Param('id', ParseIntPipe) userId: number,
-    @Query() getUserCodeQueryDto: GetUserCodeQueryDto,
+    @Query() getUserCodesQueryDto: GetUserCodesQueryDto,
   ) {
-    const { pinned } = getUserCodeQueryDto;
+    const { pinned } = getUserCodesQueryDto;
 
     const user = await this.userService.getUserById(userId);
     if (!user) {

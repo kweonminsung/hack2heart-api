@@ -70,4 +70,20 @@ export class ChatroomService {
 
     return message;
   }
+
+  async getMessages(
+    chatroomId: string,
+    beforeMessageId?: number,
+    limit?: number,
+  ) {
+    return await this.prismaService.chatroomMessage.findMany({
+      where: { chatroom_id: chatroomId },
+      orderBy: { created_at: 'desc' },
+      take: limit || 20,
+      ...(beforeMessageId && {
+        cursor: { id: beforeMessageId },
+        skip: 1, // Skip the cursor message
+      }),
+    });
+  }
 }

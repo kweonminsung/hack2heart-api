@@ -5,6 +5,7 @@ import {
   HttpException,
   Param,
   Post,
+  Query,
   UseGuards,
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
@@ -16,6 +17,7 @@ import { CreateMessageRequestDto } from './dtos/create-message-request.dto';
 import { CurrentUser } from 'src/common/decorators/current-user.decorator';
 import { User } from '@prisma/client';
 import { CommonMessageResponseDto } from 'src/common/dtos/common-message-response.dto';
+import { GetMessagesQueryDto } from './dtos/get-messages-query.dto';
 
 @ApiTags('chatrooms')
 @Controller('chatrooms')
@@ -93,5 +95,48 @@ export class ChatroomController {
         message.created_at,
       ),
     );
+  }
+
+  @Get(':chatroom_id/messages')
+  @UseGuards(JwtAuthGuard)
+  @ApiOperation({
+    summary: '채팅방 메시지 리스트 조회',
+  })
+  @ApiBearerAuth('access-token')
+  async getMessages(
+    @Param('chatroom_id') chatroomId: string,
+    @CurrentUser() currentUser: User,
+    @Query() getMessagesQueryDto: GetMessagesQueryDto,
+  ) {
+    const chatroom = await this.commonService.getChatroomById(chatroomId);
+    if (!chatroom) {
+      throw new HttpException('Chatroom not found', 404);
+    }
+
+    const isValidUser = await this.chatroomService.validateChatroomUser(
+      chatroomId,
+      currentUser.id,
+    );
+    if (!isValidUser) {
+      throw new HttpException('User not authorized for this chatroom', 403);
+    }
+
+    const messages = await this.chatroomService.getMessages(
+      chatroomId,
+      getMessagesQueryDto.before_message_id,
+      getMessagesQueryDto.limit,
+    );
+
+    return new CommonResponseDto({
+      messages: messages.map(
+        (message) =>
+          new CommonMessageResponseDto(
+            chatroomId,
+            message.user_id,
+            message.content,
+            message.created_at,
+          ),
+      ),
+    });
   }
 }
