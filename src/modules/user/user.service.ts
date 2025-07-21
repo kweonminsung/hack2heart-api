@@ -255,11 +255,15 @@ export class UserService {
     });
 
     // Send reaction to Kafka for processing
-    this.kafkaProducerService.sendUpdateUserReaction(
-      userId,
-      to_user_id,
-      reaction_type,
-    );
+    try {
+      this.kafkaProducerService.sendUpdateUserReaction(
+        userId,
+        to_user_id,
+        reaction_type,
+      );
+    } catch (err) {
+      console.error('Failed to send reaction to Kafka:', err);
+    }
 
     return reaction;
   }
