@@ -11,4 +11,7 @@ export default () => ({
   model: {
     server_url: process.env.MODEL_SERVER_URL,
   },
+  gemini: {
+    api_key: process.env.GEMINI_API_KEY,
+  },
 });

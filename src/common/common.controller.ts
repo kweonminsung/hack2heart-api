@@ -1,4 +1,12 @@
-import { Body, Controller, Get, HttpCode, Post, Query } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  HttpCode,
+  HttpException,
+  Post,
+  Query,
+} from '@nestjs/common';
 import { CommonService } from './common.service';
 import { ApiOperation, ApiTags } from '@nestjs/swagger';
 import { CommonResponseDto } from './dtos/common-response.dto';
@@ -10,6 +18,8 @@ import { CreateLanguageRequestDto } from './dtos/create-language-request.dto';
 import { CreatePackageRequestDto } from './dtos/create-package-request.dto';
 import { CreateTmiRequestDto } from './dtos/create-tmi-request.dto';
 import { KafkaProducerService } from 'src/config/kafka-producer/kafka-producer.service';
+import { CreateCodeAnalysisRequestDto } from './dtos/create-code-analysis-request.dto';
+import { GeminiService } from './gemini.service';
 
 @ApiTags('common')
 @Controller()
@@ -17,6 +27,7 @@ export class CommonController {
   constructor(
     private readonly commonService: CommonService,
     private readonly kafkaProducerService: KafkaProducerService,
+    private readonly geminiService: GeminiService,
   ) {}
 
   @Get('health')
@@ -122,5 +133,23 @@ export class CommonController {
     this.kafkaProducerService.sendRegenerateModel();
 
     return new CommonResponseDto();
+  }
+
+  @Post('codes/analyze')
+  @ApiOperation({ summary: '코드 분석' })
+  async createCodeAnalsis(
+    @Body() createAnalyzeRequestDto: CreateCodeAnalysisRequestDto,
+  ) {
+    const { content } = createAnalyzeRequestDto;
+    try {
+      const analysisResult = await this.geminiService.analyzeCode(content);
+
+      return new CommonResponseDto({
+        content: analysisResult,
+      });
+    } catch (err) {
+      console.error('Code analysis failed:', err);
+      throw new HttpException('Code analysis failed', 500);
+    }
   }
 }
