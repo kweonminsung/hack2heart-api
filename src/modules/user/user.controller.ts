@@ -28,6 +28,7 @@ import { UpdateUserCodeRequestDto } from './dtos/update-user-code-request.dto';
 import { CommonService } from 'src/common/common.service';
 import { CommonChatroomResponseDto } from 'src/common/dtos/common-chatroom.response.dto';
 import { GetUserRecommendationResponseDto } from './dtos/get-user-recommendation.response.dto';
+import { CreateUserReactionRequestDto } from './dtos/create-user-reaction.request.dto';
 
 @ApiTags('users')
 @Controller('users')
@@ -262,5 +263,42 @@ export class UserController {
         (chatroom) => new CommonChatroomResponseDto(chatroom),
       ),
     });
+  }
+
+  @Post('reactions')
+  @UseGuards(JwtAuthGuard)
+  @ApiOperation({ summary: '상대에 대한 반응 추가' })
+  @ApiBearerAuth('access-token')
+  async create_user_Reaction(
+    @Body() createUserReactionRequestDto: CreateUserReactionRequestDto,
+    @CurrentUser() currentUser: User,
+  ) {
+    const { to_user_id, reaction_type } = createUserReactionRequestDto;
+
+    if (to_user_id === currentUser.id) {
+      throw new HttpException('Cannot react to yourself', 400);
+    }
+
+    // Check if the target user exists
+    const targetUser = await this.userService.getUserById(to_user_id);
+    if (!targetUser) {
+      throw new HttpException('Target user not found', 404);
+    }
+
+    // Check if the reaction already exists
+    const existingReaction = await this.userService.getUserReaction(
+      currentUser.id,
+      to_user_id,
+    );
+    if (existingReaction) {
+      throw new HttpException('Reaction already exists', 400);
+    }
+
+    await this.userService.createUserReaction(
+      currentUser.id,
+      createUserReactionRequestDto,
+    );
+
+    return new CommonResponseDto();
   }
 }

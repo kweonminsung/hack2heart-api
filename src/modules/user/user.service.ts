@@ -6,6 +6,8 @@ import { UpdateUserRequestDto } from './dtos/update-user-request.dto copy';
 import { CreateUserCodeRequestDto } from './dtos/create-user-code-request.dto';
 import { UpdateUserCodeRequestDto } from './dtos/update-user-code-request.dto';
 import { ModelClientService } from 'src/config/model-client/model-client.service';
+import { CreateUserReactionRequestDto } from './dtos/create-user-reaction.request.dto';
+import { KafkaProducerService } from 'src/config/kafka-producer/kafka-producer.service';
 
 @Injectable()
 export class UserService {
@@ -13,6 +15,7 @@ export class UserService {
     private readonly prismaService: PrismaService,
     private readonly commonService: CommonService,
     private readonly modelClientService: ModelClientService,
+    private readonly kafkaProducerService: KafkaProducerService,
   ) {}
 
   async getUserById(userId: number) {
@@ -224,5 +227,40 @@ export class UserService {
       console.error('Error fetching user recommendations:', err);
       throw new HttpException('Failed to fetch user recommendations', 500);
     }
+  }
+
+  async getUserReaction(from_user_id: number, to_user_id: number) {
+    const reaction = await this.prismaService.userReaction.findFirst({
+      where: {
+        from_user_id,
+        to_user_id,
+      },
+    });
+
+    return reaction;
+  }
+
+  async createUserReaction(
+    userId: number,
+    createUserReactionRequestDto: CreateUserReactionRequestDto,
+  ) {
+    const { to_user_id, reaction_type } = createUserReactionRequestDto;
+
+    const reaction = await this.prismaService.userReaction.create({
+      data: {
+        from_user_id: userId,
+        to_user_id,
+        type: reaction_type,
+      },
+    });
+
+    // Send reaction to Kafka for processing
+    this.kafkaProducerService.sendUpdateUserReaction(
+      userId,
+      to_user_id,
+      reaction_type,
+    );
+
+    return reaction;
   }
 }
