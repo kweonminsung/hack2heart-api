@@ -3,6 +3,7 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { ClientsModule, Transport } from '@nestjs/microservices';
 import { KAFKA_PRODUCER_SERVICE } from './kafka-producer.constant';
 import { KafkaProducerService } from './kafka-producer.service';
+import { ScheduleModule } from '@nestjs/schedule';
 
 @Global()
 @Module({
@@ -19,13 +20,11 @@ import { KafkaProducerService } from './kafka-producer.service';
               clientId: configService.get('kafka.client_id'),
               brokers: [configService.get('kafka.broker_url')],
             },
-            consumer: {
-              groupId: configService.get('kafka.group_id'),
-            },
           },
         }),
       },
     ]),
+    ScheduleModule.forRoot(),
   ],
   providers: [KafkaProducerService],
   exports: [KafkaProducerService],

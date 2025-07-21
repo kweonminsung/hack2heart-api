@@ -1,0 +1,15 @@
+syntax = "proto3";
+
+package model;
+
+service ModelService {
+    rpc getUserRecommendations(UserRequest) returns (UserRecommendationsResponse);
+}
+
+message UserRequest {
+    int32 user_id = 1;
+}
+
+message UserRecommendationsResponse {
+    repeated int32 user_ids = 1;
+}

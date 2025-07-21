@@ -9,11 +9,15 @@ import { CommonTmiResponseDto } from './dtos/common-tmi-response.dto';
 import { CreateLanguageRequestDto } from './dtos/create-language-request.dto';
 import { CreatePackageRequestDto } from './dtos/create-package-request.dto';
 import { CreateTmiRequestDto } from './dtos/create-tmi-request.dto';
+import { KafkaProducerService } from 'src/config/kafka-producer/kafka-producer.service';
 
 @ApiTags('common')
 @Controller()
 export class CommonController {
-  constructor(private readonly commonService: CommonService) {}
+  constructor(
+    private readonly commonService: CommonService,
+    private readonly kafkaProducerService: KafkaProducerService,
+  ) {}
 
   @Get('health')
   @ApiOperation({ summary: 'Health Check' })
@@ -96,11 +100,26 @@ export class CommonController {
     return new CommonResponseDto(new CommonTmiResponseDto(tmi));
   }
 
-  @Post('kafka/emit')
-  @HttpCode(200)
+  @Post('tests/kafka')
   @ApiOperation({ summary: 'Kafka 메시지 전송' })
-  async emitKafkaMessage(@Body() body: { message: any }) {
-    const kafkaProducerService = this.commonService.emitKafkaMessage();
+  async emitTestKafkaMessage() {
+    this.commonService.emitTestKafkaMessage();
+
+    return new CommonResponseDto();
+  }
+
+  @Post('tests/grpc')
+  @ApiOperation({ summary: 'GRPC 메시지 전송' })
+  async sendTestGrpcMessage() {
+    const response = await this.commonService.sendTestGrpcMessage();
+
+    return new CommonResponseDto({ response });
+  }
+
+  @Post('tests/kafka/model-regenerate')
+  @ApiOperation({ summary: '모델 재생성 요청' })
+  async requestModelRegenerate() {
+    this.kafkaProducerService.sendRegenerateModel();
 
     return new CommonResponseDto();
   }

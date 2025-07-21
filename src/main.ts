@@ -34,8 +34,17 @@ async function bootstrap() {
   // Config for Swagger
   if (appConfig.get('app.env') === 'development') {
     const swaggerConfig = new DocumentBuilder()
-      .setTitle('Love2Heart API')
-      .setDescription('The API description for Love2Heart')
+      .setTitle('Hack2Heart API')
+      .setDescription('The API description for Hack2Heart')
+      .addBearerAuth(
+        {
+          type: 'http',
+          scheme: 'bearer',
+          name: 'JWT',
+          in: 'header',
+        },
+        'access-token',
+      )
       .build();
     const document = SwaggerModule.createDocument(app, swaggerConfig);
     SwaggerModule.setup('api', app, document);

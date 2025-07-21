@@ -27,6 +27,7 @@ import { CreateUserCodeRequestDto } from './dtos/create-user-code-request.dto';
 import { UpdateUserCodeRequestDto } from './dtos/update-user-code-request.dto';
 import { CommonService } from 'src/common/common.service';
 import { CommonChatroomResponseDto } from 'src/common/dtos/common-chatroom.response.dto';
+import { GetUserRecommendationResponseDto } from './dtos/get-user-recommendation.response.dto';
 
 @ApiTags('users')
 @Controller('users')
@@ -54,6 +55,29 @@ export class UserController {
         user.user_tmis.map((userTmi) => userTmi.tmi as Tmi),
       ),
     );
+  }
+
+  @Get('recommendations')
+  @UseGuards(JwtAuthGuard)
+  @ApiOperation({ summary: '탐색 메뉴에서 유저 리스트 불러오기' })
+  @ApiBearerAuth('access-token')
+  async getUserRecommendations(@CurrentUser() currentUser: User) {
+    const recommendations = await this.userService.getUserRecommendations(
+      currentUser.id,
+    );
+
+    return new CommonResponseDto({
+      users: recommendations.map(
+        (user) =>
+          new GetUserRecommendationResponseDto(
+            user,
+            user.most_preferred_language as Language,
+            user.most_preferred_package as Package,
+            user.user_tmis.map((userTmi) => userTmi.tmi as Tmi),
+            user.user_reaction_tos[0]?.type || null,
+          ),
+      ),
+    });
   }
 
   @Get(':id')

@@ -4,12 +4,14 @@ import { CreateLanguageRequestDto } from './dtos/create-language-request.dto';
 import { CreatePackageRequestDto } from './dtos/create-package-request.dto';
 import { CreateTmiRequestDto } from './dtos/create-tmi-request.dto';
 import { KafkaProducerService } from 'src/config/kafka-producer/kafka-producer.service';
+import { ModelClientService } from 'src/config/model-client/model-client.service';
 
 @Injectable()
 export class CommonService {
   constructor(
     private readonly prismaService: PrismaService,
     private readonly kafkaProducerService: KafkaProducerService,
+    private readonly modelClientService: ModelClientService,
   ) {}
 
   async getUserById(userId: number) {
@@ -138,9 +140,17 @@ export class CommonService {
     });
   }
 
-  async emitKafkaMessage() {
+  async emitTestKafkaMessage() {
     this.kafkaProducerService.sendMessage({
       message: 'Hello from NestJS Kafka Producer',
     });
+  }
+
+  async sendTestGrpcMessage() {
+    const response = await this.modelClientService.sendTestMessage(
+      'Hello from NestJS GRPC Client',
+    );
+
+    return response;
   }
 }

@@ -5,12 +5,14 @@ import { CreateUserRequestDto } from './dtos/create-user-request.dto';
 import { UpdateUserRequestDto } from './dtos/update-user-request.dto copy';
 import { CreateUserCodeRequestDto } from './dtos/create-user-code-request.dto';
 import { UpdateUserCodeRequestDto } from './dtos/update-user-code-request.dto';
+import { ModelClientService } from 'src/config/model-client/model-client.service';
 
 @Injectable()
 export class UserService {
   constructor(
     private readonly prismaService: PrismaService,
     private readonly commonService: CommonService,
+    private readonly modelClientService: ModelClientService,
   ) {}
 
   async getUserById(userId: number) {
@@ -194,5 +196,33 @@ export class UserService {
     });
 
     return chatrooms;
+  }
+
+  async getUserRecommendations(userId: number) {
+    try {
+      const recommendedUserIds =
+        await this.modelClientService.getUserRecommendations(userId);
+
+      const users = await this.prismaService.user.findMany({
+        where: {
+          id: { in: recommendedUserIds },
+        },
+        include: {
+          user_reaction_tos: true,
+          most_preferred_language: true,
+          most_preferred_package: true,
+          user_tmis: {
+            include: {
+              tmi: true,
+            },
+          },
+        },
+      });
+
+      return users;
+    } catch (err) {
+      console.error('Error fetching user recommendations:', err);
+      throw new HttpException('Failed to fetch user recommendations', 500);
+    }
   }
 }
