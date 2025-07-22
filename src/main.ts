@@ -10,7 +10,10 @@ async function bootstrap() {
 
   // CORS
   app.enableCors({
-    origin: ['http://localhost:3000'],
+    origin: [
+      'http://localhost:3000',
+      /^vscode-webview:\/\//, // 정규식으로 허용
+    ],
     credentials: true,
   });
 
