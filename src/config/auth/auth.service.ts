@@ -33,7 +33,7 @@ export class AuthService {
     console.log('GitHub User:', githubUser);
 
     let user = await this.prismaService.user.findUnique({
-      where: { github_oauth_id: githubUser.id },
+      where: { github_oauth_id: String(githubUser.id) },
     });
 
     if (!user) {
