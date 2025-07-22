@@ -43,7 +43,7 @@ export class UserController {
   @ApiOperation({ summary: '내 정보 조회' })
   @ApiBearerAuth('access-token')
   async getUserMe(@CurrentUser() currentUser: User) {
-    const user = await this.userService.getUserById(currentUser.id);
+    const user = await this.commonService.getUserById(currentUser.id);
     if (!user) {
       throw new HttpException('User fetch failed', 500);
     }
@@ -84,7 +84,7 @@ export class UserController {
   @Get(':id')
   @ApiOperation({ summary: '유저 정보 조회' })
   async getUser(@Param('id', ParseIntPipe) userId: number) {
-    const user = await this.userService.getUserById(userId);
+    const user = await this.commonService.getUserById(userId);
     if (!user) {
       throw new HttpException('User not found', 404);
     }
@@ -182,7 +182,7 @@ export class UserController {
   ) {
     const { pinned } = getUserCodesQueryDto;
 
-    const user = await this.userService.getUserById(userId);
+    const user = await this.commonService.getUserById(userId);
     if (!user) {
       throw new HttpException('User not found', 404);
     }
@@ -280,19 +280,19 @@ export class UserController {
     }
 
     // Check if the target user exists
-    const targetUser = await this.userService.getUserById(to_user_id);
+    const targetUser = await this.commonService.getUserById(to_user_id);
     if (!targetUser) {
       throw new HttpException('Target user not found', 404);
     }
 
-    // Check if the reaction already exists
-    const existingReaction = await this.userService.getUserReaction(
-      currentUser.id,
-      to_user_id,
-    );
-    if (existingReaction) {
-      throw new HttpException('Reaction already exists', 400);
-    }
+    // // Check if the reaction already exists
+    // const existingReaction = await this.userService.getUserReaction(
+    //   currentUser.id,
+    //   to_user_id,
+    // );
+    // if (existingReaction) {
+    //   throw new HttpException('Reaction already exists', 400);
+    // }
 
     await this.userService.createUserReaction(
       currentUser.id,

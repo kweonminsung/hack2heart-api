@@ -40,17 +40,17 @@ export class CreateUserRequestDto {
   @IsNumber()
   avatar_id?: number;
 
-  @ApiProperty({ required: false })
-  @IsOptional()
+  @ApiProperty()
+  @IsNotEmpty()
   @Type(() => Number)
   @IsNumber()
-  most_preferred_language_id?: number;
+  most_preferred_language_id: number;
 
-  @ApiProperty({ required: false })
-  @IsOptional()
+  @ApiProperty()
+  @IsNotEmpty()
   @Type(() => Number)
   @IsNumber()
-  most_preferred_package_id?: number;
+  most_preferred_package_id: number;
 
   @ApiProperty()
   @IsNotEmpty()

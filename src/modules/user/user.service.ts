@@ -8,7 +8,8 @@ import { UpdateUserCodeRequestDto } from './dtos/update-user-code-request.dto';
 import { ModelClientService } from 'src/config/model-client/model-client.service';
 import { CreateUserReactionRequestDto } from './dtos/create-user-reaction.request.dto';
 import { KafkaProducerService } from 'src/config/kafka-producer/kafka-producer.service';
-
+import { v4 } from 'uuid';
+import { ReactionType } from '@prisma/client';
 @Injectable()
 export class UserService {
   constructor(
@@ -17,10 +18,6 @@ export class UserService {
     private readonly modelClientService: ModelClientService,
     private readonly kafkaProducerService: KafkaProducerService,
   ) {}
-
-  async getUserById(userId: number) {
-    return await this.commonService.getUserById(userId);
-  }
 
   async createUser(createUserRequestDto: CreateUserRequestDto) {
     const { most_preferred_language_id, most_preferred_package_id } =
@@ -240,18 +237,89 @@ export class UserService {
     return reaction;
   }
 
+  async findChatroomWithBothUsers(userId: number, from_user_id: number) {
+    const chatroom = await this.prismaService.chatroom.findFirst({
+      where: {
+        chatroom_users: {
+          some: {
+            user_id: userId,
+          },
+        },
+        AND: [
+          {
+            chatroom_users: {
+              some: {
+                user_id: from_user_id,
+              },
+            },
+          },
+        ],
+      },
+      include: {
+        chatroom_users: true,
+      },
+    });
+
+    return chatroom;
+  }
+
   async createUserReaction(
     userId: number,
     createUserReactionRequestDto: CreateUserReactionRequestDto,
   ) {
     const { to_user_id, reaction_type } = createUserReactionRequestDto;
 
-    const reaction = await this.prismaService.userReaction.create({
-      data: {
-        from_user_id: userId,
+    const reaction = await this.prismaService.$transaction(async (tx) => {
+      let existingReaction = await this.getUserReaction(userId, to_user_id);
+
+      if (existingReaction) {
+        existingReaction = await tx.userReaction.update({
+          where: {
+            id: existingReaction.id,
+          },
+          data: {
+            type: reaction_type,
+          },
+        });
+      } else {
+        existingReaction = await tx.userReaction.create({
+          data: {
+            from_user_id: userId,
+            to_user_id,
+            type: reaction_type,
+          },
+        });
+      }
+
+      const reverseReaction = await this.getUserReaction(to_user_id, userId);
+      const existingChatroom = await this.findChatroomWithBothUsers(
+        userId,
         to_user_id,
-        type: reaction_type,
-      },
+      );
+
+      if (
+        !existingChatroom &&
+        reverseReaction &&
+        (reaction_type === ReactionType.SUPER_LIKE ||
+          reaction_type === ReactionType.LIKE) &&
+        (reverseReaction.type === ReactionType.SUPER_LIKE ||
+          reverseReaction.type === ReactionType.LIKE)
+      ) {
+        const chatroom = await tx.chatroom.create({
+          data: {
+            id: v4(),
+          },
+        });
+
+        await tx.chatroomUser.createMany({
+          data: [
+            { user_id: userId, chatroom_id: chatroom.id },
+            { user_id: to_user_id, chatroom_id: chatroom.id },
+          ],
+        });
+      }
+
+      return existingReaction;
     });
 
     // Send reaction to Kafka for processing
