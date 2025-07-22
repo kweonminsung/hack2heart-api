@@ -30,6 +30,7 @@ export class AuthService {
     if (!githubUser) {
       throw new HttpException('Invalid GitHub token', 401);
     }
+    console.log('GitHub User:', githubUser);
 
     let user = await this.prismaService.user.findUnique({
       where: { github_oauth_id: githubUser.id },
