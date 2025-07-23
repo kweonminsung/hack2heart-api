@@ -78,7 +78,7 @@ export class ChatroomService {
   ) {
     return await this.prismaService.chatroomMessage.findMany({
       where: { chatroom_id: chatroomId },
-      orderBy: { created_at: 'desc' },
+      orderBy: { created_at: 'asc' },
       take: limit || 20,
       ...(beforeMessageId && {
         cursor: { id: beforeMessageId },
