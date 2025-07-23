@@ -219,11 +219,7 @@ export class UserController {
   ) {
     const { ids, indices } = updateUserCodeIndicesRequestDto;
 
-    if (
-      indices.length === 0 ||
-      indices.length > 5 ||
-      ids.length !== indices.length
-    ) {
+    if (indices.length > 5 || ids.length !== indices.length) {
       throw new HttpException('Invalid indices', 400);
     }
 
