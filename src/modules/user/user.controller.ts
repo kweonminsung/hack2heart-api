@@ -29,6 +29,7 @@ import { CommonService } from 'src/common/common.service';
 import { CommonChatroomResponseDto } from 'src/common/dtos/common-chatroom.response.dto';
 import { GetUserRecommendationResponseDto } from './dtos/get-user-recommendation.response.dto';
 import { CreateUserReactionRequestDto } from './dtos/create-user-reaction.request.dto';
+import { UpdateUserCodeIndicesRequestDto } from './dtos/update-user-code-indices-request.dto';
 
 @ApiTags('users')
 @Controller('users')
@@ -212,6 +213,29 @@ export class UserController {
     return new CommonResponseDto(new GetUserCodeResponseDto(userCode));
   }
 
+  @Put('me/codes/indices')
+  @UseGuards(JwtAuthGuard)
+  @ApiOperation({ summary: '내 고정 코드 순서 변경' })
+  @ApiBearerAuth('access-token')
+  async updateUserCodeIndices(
+    @CurrentUser() currentUser: User,
+    @Body() updateUserCodeIndicesRequestDto: UpdateUserCodeIndicesRequestDto,
+  ) {
+    const { ids, indices } = updateUserCodeIndicesRequestDto;
+
+    if (
+      indices.length === 0 ||
+      indices.length > 5 ||
+      ids.length !== indices.length
+    ) {
+      throw new HttpException('Invalid indices', 400);
+    }
+
+    await this.userService.updateUserCodeIndices(currentUser.id, ids, indices);
+
+    return new CommonResponseDto();
+  }
+
   @Put('me/codes/:code_id')
   @UseGuards(JwtAuthGuard)
   @ApiOperation({ summary: '내 코드 수정' })
@@ -260,7 +284,15 @@ export class UserController {
 
     return new CommonResponseDto({
       chatrooms: chatrooms.map(
-        (chatroom) => new CommonChatroomResponseDto(chatroom),
+        (chatroom) =>
+          new CommonChatroomResponseDto(
+            chatroom,
+            chatroom.chatroom_users.find((cu) => cu.user_id !== currentUser.id)!
+              .user as User,
+            chatroom.chatroom_messages[0]
+              ? chatroom.chatroom_messages[0].content
+              : null,
+          ),
       ),
     });
   }

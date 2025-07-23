@@ -7,10 +7,4 @@ export class UpdateUserCodeRequestDto {
   @IsNotEmpty()
   @IsString()
   content: string;
-
-  @ApiProperty({ required: false })
-  @IsOptional()
-  @Type(() => Boolean)
-  @IsBoolean()
-  pinned?: boolean;
 }

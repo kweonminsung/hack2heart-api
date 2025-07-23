@@ -133,6 +133,9 @@ export class UserService {
           index: pinned ? { not: null } : null,
         }),
       },
+      orderBy: {
+        index: 'asc',
+      },
     });
 
     return userCodes;
@@ -154,12 +157,44 @@ export class UserService {
     return userCode;
   }
 
+  async updateUserCodeIndices(
+    userId: number,
+    ids: number[],
+    indices: number[],
+  ) {
+    await this.prismaService.$transaction(async (tx) => {
+      await tx.userCode.updateMany({
+        where: { user_id: userId },
+        data: { index: null },
+      });
+
+      const userCodes = await tx.userCode.findMany({
+        where: { user_id: userId },
+      });
+
+      for (let i = 0; i < ids.length; i++) {
+        const codeId = ids[i];
+        const index = indices[i];
+
+        const userCode = userCodes.find((code) => code.id === codeId);
+        if (!userCode) {
+          throw new HttpException(`Code with ID ${codeId} not found`, 404);
+        }
+
+        await tx.userCode.update({
+          where: { id: codeId },
+          data: { index },
+        });
+      }
+    });
+  }
+
   async updateUserCode(
     userId: number,
     codeId: number,
     updateUserCodeRequestDto: UpdateUserCodeRequestDto,
   ) {
-    const { content, pinned } = updateUserCodeRequestDto;
+    const { content } = updateUserCodeRequestDto;
 
     const userCode = await this.prismaService.userCode.update({
       where: {
@@ -168,7 +203,6 @@ export class UserService {
       },
       data: {
         content,
-        ...(pinned !== undefined && { index: pinned ? 0 : null }),
       },
     });
 
@@ -191,6 +225,17 @@ export class UserService {
           some: {
             user_id: userId,
           },
+        },
+      },
+      include: {
+        chatroom_users: {
+          include: {
+            user: true,
+          },
+        },
+        chatroom_messages: {
+          orderBy: { created_at: 'desc' },
+          take: 1,
         },
       },
     });

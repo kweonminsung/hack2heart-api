@@ -4,8 +4,7 @@ import { CommonMessageResponseDto } from 'src/common/dtos/common-message-respons
 
 @WebSocketGateway({
   cors: true,
-  path: '/chatrooms/ws',
-  namespace: 'chatrooms/ws',
+  namespace: 'ws/chatrooms',
 })
 export class ChatroomGateway {
   @WebSocketServer()
