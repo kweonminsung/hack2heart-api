@@ -65,6 +65,9 @@ export class UserService {
       return txUser;
     });
 
+    // Send model regeneration request to Kafka
+    this.kafkaProducerService.sendRegenerateModel();
+
     return await this.commonService.getUserById(user.id);
   }
 

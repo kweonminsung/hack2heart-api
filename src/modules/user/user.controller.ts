@@ -169,9 +169,7 @@ export class UserController {
     );
 
     return new CommonResponseDto({
-      userCodes: userCodes.map(
-        (userCode) => new GetUserCodeResponseDto(userCode),
-      ),
+      codes: userCodes.map((userCode) => new GetUserCodeResponseDto(userCode)),
     });
   }
 
@@ -191,9 +189,7 @@ export class UserController {
     const userCodes = await this.userService.getUserCodes(userId, pinned);
 
     return new CommonResponseDto({
-      userCodes: userCodes.map(
-        (userCode) => new GetUserCodeResponseDto(userCode),
-      ),
+      codes: userCodes.map((userCode) => new GetUserCodeResponseDto(userCode)),
     });
   }
 
